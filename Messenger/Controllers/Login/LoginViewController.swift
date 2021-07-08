@@ -18,7 +18,7 @@ class LoginViewController: UIViewController {
     }()
     
     private let imageView: UIImageView = {
-       let imageView = UIImageView()
+        let imageView = UIImageView()
         imageView.image = UIImage(named: "logo")
         imageView.contentMode = .scaleAspectFit
         return imageView
@@ -65,7 +65,11 @@ class LoginViewController: UIViewController {
         return button
     }()
     
-    private let FBloginButton = FBLoginButton()
+    private let FBloginButton: FBLoginButton = {
+        let button  = FBLoginButton()
+        button.permissions = ["email", "public_profile"]
+        return button
+    }()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -136,7 +140,7 @@ class LoginViewController: UIViewController {
         vc.title = "Create Account"
         navigationController?.pushViewController(vc, animated: true)
     }
-
+    
 }
 // MARK: - Delegate email and password
 extension LoginViewController: UITextFieldDelegate {
@@ -165,9 +169,50 @@ extension LoginViewController: LoginButtonDelegate {
             print("Failed to log in via facebook.")
             return
         }
-        let credential = FacebookAuthProvider.credential(withAccessToken: token)
-        FirebaseAuth.Auth.auth().signIn(with: credential, completion: { authResult, error in
+        
+        let facebookRequest = FBSDKLoginKit.GraphRequest(graphPath: "me", parameters: ["fields": "email, name"], tokenString: token, version: nil, httpMethod: .get)
+        
+        facebookRequest.start { _, result, error in
+            guard let result = result as? [String: Any], error == nil else {
+                print("failed to make faceboook graph request")
+                return
+            }
+            print("\(result)")
+            guard let userName = result["name"] as? String, let email = result["email"] as? String else {
+                print("Failed to get name and email")
+                return
+            }
             
+            let nameComponents = userName.components(separatedBy: " ")
+            guard nameComponents.count == 2 else {
+                return
+            }
+            
+            let firstName = nameComponents[0]
+            let lastName = nameComponents[1]
+            
+            DatabaseManager.shared.userExists(with: email, completion: { exists in
+                if !exists {
+                    DatabaseManager.shared.insertUser(with: ChatAppUser(firstName: firstName, lastName: lastName, emailAddress: email))
+                }
+            })
+            
+        }
+        
+        let credential = FacebookAuthProvider.credential(withAccessToken: token)
+        FirebaseAuth.Auth.auth().signIn(with: credential, completion: { [weak self] authResult, error in
+            guard let strongSelf = self else {
+                return
+            }
+            
+            guard authResult != nil, error == nil else {
+                if let error = error {
+                    print("Facebook credential login, MFA may be needed - \(error)")
+                }
+                return
+            }
+            print("Successfully login by facebook")
+            strongSelf.navigationController?.dismiss(animated: true, completion: nil)
         })
         
     }
