@@ -67,14 +67,14 @@
 		<dict>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>fb507093837235105</string>
+				<string>$(CFBundleURLSchemes)</string>
 			</array>
 		</dict>
 	</array>
 	<key>FacebookAppID</key>
-	<string>507093837235105</string>
+	<string>$(FacebookAppID)</string>
 	<key>FacebookClientToken</key>
-	<string>eb70ce852eb2d4000478a3425176fd01</string>
+	<string>$(FacebookClientToken)</string>
 	<key>FacebookDisplayName</key>
 	<string>My Messenger Tests</string>
 	<key>LSApplicationQueriesSchemes</key>

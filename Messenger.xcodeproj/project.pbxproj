@@ -43,6 +43,7 @@
 		40CC800D268DBCB400A373D5 /* NewConversationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewConversationViewController.swift; sourceTree = "<group>"; };
 		40CC800F268DBCCB00A373D5 /* ProfileViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewController.swift; sourceTree = "<group>"; };
 		40CC8012268DC4CE00A373D5 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		40D373D1269723200045E697 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		46ECE9BF5B297FAFF7CC831F /* Pods-Messenger.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Messenger.release.xcconfig"; path = "Target Support Files/Pods-Messenger/Pods-Messenger.release.xcconfig"; sourceTree = "<group>"; };
 		8194BCDF72D0C55DECF59826 /* Pods_Messenger.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Messenger.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		982E936D7AEC915118052596 /* Pods-Messenger.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Messenger.debug.xcconfig"; path = "Target Support Files/Pods-Messenger/Pods-Messenger.debug.xcconfig"; sourceTree = "<group>"; };
@@ -89,6 +90,7 @@
 		40CC7FE8268DB96000A373D5 /* Messenger */ = {
 			isa = PBXGroup;
 			children = (
+				40D373D1269723200045E697 /* Config.xcconfig */,
 				40B7584B2691CD110088A0AC /* GoogleService-Info.plist */,
 				40CC8001268DBA9700A373D5 /* Resources */,
 				40CC8000268DBA9100A373D5 /* ViewModels */,
@@ -327,6 +329,7 @@
 /* Begin XCBuildConfiguration section */
 		40CC7FF8268DB96100A373D5 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 40D373D1269723200045E697 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -388,6 +391,7 @@
 		};
 		40CC7FF9268DB96100A373D5 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 40D373D1269723200045E697 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
