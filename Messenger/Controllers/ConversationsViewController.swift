@@ -10,17 +10,20 @@ import FirebaseAuth
 
 class ConversationsViewController: UIViewController {
 
+//    private let tableView: UITableView = {
+//        let table = UITableView()
+//        table.register
+//        return table
+//    }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
         validateAuth()
-        
     }
     
     private func validateAuth() {

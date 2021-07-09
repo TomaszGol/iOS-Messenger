@@ -13,14 +13,11 @@ final class DatabaseManager {
     static let shared = DatabaseManager()
     
     private let database = Database.database(url: "https://messenger-a6ffa-default-rtdb.europe-west1.firebasedatabase.app").reference()
-    
-
 }
 
 // MARK: - Account Management
 
 extension DatabaseManager {
-    
     
     public func userExists(with email: String, completion: @escaping ((Bool) -> Void)) {
         
@@ -43,7 +40,6 @@ extension DatabaseManager {
             "last_name": user.lastName
         ])
     }
-    
 }
 
 struct ChatAppUser {
