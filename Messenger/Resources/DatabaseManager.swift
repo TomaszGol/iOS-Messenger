@@ -50,10 +50,58 @@ extension DatabaseManager {
                 completion(false)
                 return
             }
-            completion(true)
+            
+            self.database.child("users").observeSingleEvent(of: .value) { snapshot in
+                if var usersCollecition = snapshot.value as? [[String: String]] {
+                    let newElement = [
+                            "name": user.firstName + " " + user.lastName,
+                            "email":user.safeEmail
+                        ]
+                    usersCollecition.append(newElement)
+                    self.database.child("users").setValue(usersCollecition) { error, _ in
+                        guard error == nil else {
+                            completion(false)
+                            return
+                        }
+                        completion(true)
+                    }
+                }
+                else {
+                    let newCollection: [[String: String]] = [
+                        ["name": user.firstName + " " + user.lastName,
+                         "email":user.safeEmail
+                        ]
+                    ]
+                    self.database.child("users").setValue(newCollection) { error, _ in
+                        guard error == nil else {
+                            completion(false)
+                            return
+                        }
+                        completion(true)
+                    }
+                }
+            }
         })
     }
+    
+    public func getAllUsers(completion: @escaping (Result<[[String: String]], Error>) -> Void) {
+        database.child("users").observeSingleEvent(of: .value) { snapshot in
+            guard let value = snapshot.value as? [[String: String]] else {
+                completion(.failure(DatabaseErrors.failedToFetch))
+                return
+            }
+            completion(.success(value))
+        }
+    }
+    
+    public enum DatabaseErrors: Error {
+        case failedToFetch
+    }
+    
+    
 }
+
+
 
 struct ChatAppUser {
     let firstName: String
