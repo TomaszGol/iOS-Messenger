@@ -13,6 +13,12 @@ final class DatabaseManager {
     static let shared = DatabaseManager()
     
     private let database = Database.database(url: "https://messenger-a6ffa-default-rtdb.europe-west1.firebasedatabase.app").reference()
+    
+    static func safeEmail(emailAddress: String) -> String {
+        var safeEmail = emailAddress.replacingOccurrences(of: ".", with: "-")
+        safeEmail = safeEmail.replacingOccurrences(of: "@", with: "-")
+        return safeEmail
+    }
 }
 
 // MARK: - Account Management
