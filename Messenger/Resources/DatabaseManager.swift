@@ -100,8 +100,82 @@ extension DatabaseManager {
     
     
 }
+// MARK: - Sending messages / conversations
 
-
+extension DatabaseManager {
+    /// Creates a new conversation with target user email and first image
+    public func createnewConveration(with otherUserEmail: String, firstMessage: Message, completion: @escaping (Bool) -> Void) {
+        guard let currentEmail = UserDefaults.standard.value(forKey: "email") as? String else {
+            return
+        }
+        let safeEmail = DatabaseManager.safeEmail(emailAddress: currentEmail)
+        let ref = database.child(safeEmail)
+        ref.observeSingleEvent(of: .value) { snapshot in
+            guard var userNode = snapshot.value as? [String: Any] else {
+                completion(false)
+                print("User not found")
+                return
+            }
+            
+            let messageDate = firstMessage.sentDate
+            let dateString = ChatViewController.dateFormatter.string(from: messageDate)
+            
+            var message = ""
+            
+            switch firstMessage.kind {
+            case .text(let messageText):
+                message = messageText
+            case .attributedText(_):
+                break
+            case .photo(_):
+                break
+            case .video(_):
+                break
+            case .location(_):
+                break
+            case .emoji(_):
+                break
+            case .audio(_):
+                break
+            case .contact(_):
+                break
+            case .linkPreview(_):
+                break
+            case .custom(_):
+                break
+            }
+            
+            let newConversationData: [String: Any] = [
+                "id": "conversation_\(firstMessage.messageId)",
+                "other_user_emai": otherUserEmail,
+                "latest_message": [
+                    "date": dateString,
+                    "message": message,
+                    "is_read": false
+                ],
+            ]
+            
+            if var converasations = userNode["conversations"] as? [[String: Any]] {
+                
+            } else {
+                userNode["conversations"] = [newConversationData]
+            }
+        }
+    }
+    /// Fateches and returns all conversations for the user with passed email
+    public func getAllConversations(for email: String, completion: @escaping (Result<String, Error>) -> Void) {
+        
+    }
+    /// Gets all messages for a given conversation
+    public func getAllMessagesForConversations(with id: String, completion: @escaping (Result<String, Error>) -> Void) {
+        
+    }
+    /// Sends a message with target conversation and message
+    public func sendMessage(to conversation: String, message: Message, completion: @escaping (Bool) -> Void) {
+        
+    }
+    
+}
 
 struct ChatAppUser {
     let firstName: String
@@ -117,3 +191,4 @@ struct ChatAppUser {
         return "\(safeEmail)_profile_picture.png"
     }
 }
+
