@@ -109,7 +109,9 @@ extension DatabaseManager {
             return
         }
         let safeEmail = DatabaseManager.safeEmail(emailAddress: currentEmail)
+        
         let ref = database.child(safeEmail)
+        
         ref.observeSingleEvent(of: .value) { snapshot in
             guard var userNode = snapshot.value as? [String: Any] else {
                 completion(false)
@@ -145,8 +147,10 @@ extension DatabaseManager {
                 break
             }
             
+            let conversationID = "conversation_\(firstMessage.messageId)"
+            
             let newConversationData: [String: Any] = [
-                "id": "conversation_\(firstMessage.messageId)",
+                "id": conversationID,
                 "other_user_emai": otherUserEmail,
                 "latest_message": [
                     "date": dateString,
@@ -156,10 +160,88 @@ extension DatabaseManager {
             ]
             
             if var converasations = userNode["conversations"] as? [[String: Any]] {
-                
+                converasations.append(newConversationData)
+                userNode["conversations"] = converasations
+                ref.setValue(userNode) { [weak self] error, _ in
+                    guard error == nil else {
+                        completion(false)
+                        return
+                    }
+                    self?.finishCreatingConversation(conversationID: conversationID, firstMessage: firstMessage, completion: completion)
+                }
             } else {
                 userNode["conversations"] = [newConversationData]
             }
+            ref.setValue(userNode) { [weak self] error, _ in
+                guard error == nil else {
+                    completion(false)
+                    return
+                }
+                
+                self?.finishCreatingConversation(conversationID: conversationID, firstMessage: firstMessage, completion: completion)
+            }
+        }
+    }
+    
+    private func finishCreatingConversation(conversationID: String, firstMessage: Message, completion: @escaping (Bool) -> Void) {
+        
+        var message = ""
+        let messageDate = firstMessage.sentDate
+        let dateString = ChatViewController.dateFormatter.string(from: messageDate)
+        
+        switch firstMessage.kind {
+        case .text(let messageText):
+            message = messageText
+        case .attributedText(_):
+            break
+        case .photo(_):
+            break
+        case .video(_):
+            break
+        case .location(_):
+            break
+        case .emoji(_):
+            break
+        case .audio(_):
+            break
+        case .contact(_):
+            break
+        case .linkPreview(_):
+            break
+        case .custom(_):
+            break
+        }
+        
+        guard let myEmail = UserDefaults.standard.value(forKey: "email") as? String else {
+            completion(false)
+            return
+        }
+        
+        let currentUserEmail = DatabaseManager.safeEmail(emailAddress: myEmail)
+        
+        let collectionMessage: [String: Any] = [
+            "id": firstMessage.messageId,
+            "type": firstMessage.kind.messageKindString,
+            "content": message,
+            "date": dateString,
+            "sender_email": currentUserEmail,
+            "is_read": false
+        ]
+        
+        let value: [String: Any] = [
+            "messages": [
+                collectionMessage
+            ]
+        ]
+        
+        print("Adding cnvo: \(conversationID)")
+        
+        database.child("\(conversationID)").setValue(value) { error, _ in
+            guard error == nil else {
+                completion(false)
+                return
+            }
+            completion(true)
         }
     }
     /// Fateches and returns all conversations for the user with passed email
