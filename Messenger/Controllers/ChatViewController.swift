@@ -69,7 +69,8 @@ class ChatViewController: MessagesViewController {
         guard let email = UserDefaults.standard.value(forKey: "email") as? String else {
             return nil
         }
-        return Sender(photoURL: "", senderId: email, displayName: "Thomas")
+        let safeEmail = DatabaseManager.safeEmail(emailAddress: email)
+        return Sender(photoURL: "", senderId: safeEmail, displayName: "Me")
         
     }
     
@@ -79,9 +80,6 @@ class ChatViewController: MessagesViewController {
         self.conversationId = id
         self.otherUserEmail = email
         super.init(nibName: nil, bundle: nil)
-        if let conversationId = conversationId {
-            listenForMessages(id: conversationId)
-        }
     }
     
     required init?(coder: NSCoder) {
@@ -99,7 +97,7 @@ class ChatViewController: MessagesViewController {
         
     }
     
-    private func listenForMessages(id: String) {
+    private func listenForMessages(id: String, shouldScrollToBottom: Bool) {
         DatabaseManager.shared.getAllMessagesForConversations(with: id) { [weak self] result in
             switch result {
             case .success(let messages):
@@ -109,6 +107,10 @@ class ChatViewController: MessagesViewController {
                 self?.messages = messages
                 DispatchQueue.main.async {
                     self?.messagesCollectionView.reloadDataAndKeepOffset()
+                    if shouldScrollToBottom {
+                        self?.messagesCollectionView.scrollToBottom()
+                        
+                    }
                 }
                 
             case .failure(let error):
@@ -120,6 +122,9 @@ class ChatViewController: MessagesViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         messageInputBar.inputTextView.becomeFirstResponder()
+        if let conversationId = conversationId {
+            listenForMessages(id: conversationId, shouldScrollToBottom: true)
+        }
     }
     
 }
@@ -166,6 +171,7 @@ extension ChatViewController: MessagesDataSource, MessagesLayoutDelegate, Messag
         if let sender = selfSender {
             return sender
         }
+        
         fatalError("Self Sender is nil, email should be cached")
     }
     
