@@ -52,6 +52,7 @@ class ConversationsViewController: UIViewController {
         view.addSubview(noConversationsLabel)
         setupTableView()
         fetchConversations()
+        startListeningForConversations()
     }
     
     private func startListeningForConversations() {
@@ -60,15 +61,18 @@ class ConversationsViewController: UIViewController {
         }
         print("Starting fetch converastion")
         let safeEmail = DatabaseManager.safeEmail(emailAddress: email)
+        print(safeEmail)
         DatabaseManager.shared.getAllConversations(for: safeEmail) { [weak self] result in
             switch result {
             case .success(let conversations):
                 print("Successfully got conversation models")
                 guard !conversations.isEmpty else {
+                    print("conversation is empty return")
                     return
                 }
                 self?.conversations = conversations
                 DispatchQueue.main.async {
+                    print("Reload data")
                     self?.tableView.reloadData()
                 }
             case .failure(let error):
@@ -90,7 +94,7 @@ class ConversationsViewController: UIViewController {
         guard let name = result["name"], let email = result["email"] else {
             return
         }
-        let vc = ChatViewController(with: email)
+        let vc = ChatViewController(with: email, id: nil)
         vc.isNewConversation = true
         vc.title = name
         vc.navigationItem.largeTitleDisplayMode = .never
@@ -144,7 +148,7 @@ extension ConversationsViewController: UITableViewDelegate, UITableViewDataSourc
         tableView.deselectRow(at: indexPath, animated: true)
         let model = conversations[indexPath.row]
         
-        let vc = ChatViewController(with: model.otherUserEmail)
+        let vc = ChatViewController(with: model.otherUserEmail, id: model.id)
         vc.title = model.name
         vc.navigationItem.largeTitleDisplayMode = .never
         navigationController?.pushViewController(vc, animated: true)

@@ -60,7 +60,7 @@ class ChatViewController: MessagesViewController {
     }()
     
     public let otherUserEmail: String
-
+    private let conversationId: String?
     public var isNewConversation = false
     
     private var messages = [Message]()
@@ -73,10 +73,15 @@ class ChatViewController: MessagesViewController {
         
     }
     
-    init(with email: String) {
+
+    
+    init(with email: String, id: String?) {
+        self.conversationId = id
         self.otherUserEmail = email
         super.init(nibName: nil, bundle: nil)
-        
+        if let conversationId = conversationId {
+            listenForMessages(id: conversationId)
+        }
     }
     
     required init?(coder: NSCoder) {
@@ -91,6 +96,25 @@ class ChatViewController: MessagesViewController {
         messagesCollectionView.messagesLayoutDelegate = self
         messagesCollectionView.messagesDisplayDelegate = self
         messageInputBar.delegate = self
+        
+    }
+    
+    private func listenForMessages(id: String) {
+        DatabaseManager.shared.getAllMessagesForConversations(with: id) { [weak self] result in
+            switch result {
+            case .success(let messages):
+                guard !messages.isEmpty else {
+                    return
+                }
+                self?.messages = messages
+                DispatchQueue.main.async {
+                    self?.messagesCollectionView.reloadDataAndKeepOffset()
+                }
+                
+            case .failure(let error):
+                print("Failed to get messages \(error)")
+            }
+        }
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -109,7 +133,7 @@ extension ChatViewController: InputBarAccessoryViewDelegate {
         if isNewConversation {
             let message = Message(sender: selfSender, messageId: messageId, sentDate: Date(), kind: .text(text))
             DatabaseManager.shared.createnewConveration(with: otherUserEmail, name: self.title ??
-                                                            "user", firstMessage: message) { [weak self] success in
+                                                            "User", firstMessage: message) { [weak self] success in
                 if success {
                     print("message sent")
                 } else {
@@ -122,13 +146,14 @@ extension ChatViewController: InputBarAccessoryViewDelegate {
     }
     
     private func createMessageId() -> String? {
-        let dateString = Self.dateFormatter.string(from: Date())
+        
         guard let currentUserEmail = UserDefaults.standard.value(forKey: "email") as? String else {
             return nil
         }
         
         let safeCurrentEmail = DatabaseManager.safeEmail(emailAddress: currentUserEmail)
         
+        let dateString = Self.dateFormatter.string(from: Date())
         let newIdentifier = "\(otherUserEmail)_\(safeCurrentEmail)_\(dateString)"
         
         return newIdentifier
@@ -142,7 +167,6 @@ extension ChatViewController: MessagesDataSource, MessagesLayoutDelegate, Messag
             return sender
         }
         fatalError("Self Sender is nil, email should be cached")
-        return Sender(photoURL: "", senderId: "12", displayName: "")
     }
     
     func messageForItem(at indexPath: IndexPath, in messagesCollectionView: MessagesCollectionView) -> MessageType {

@@ -151,7 +151,7 @@ extension DatabaseManager {
             
             let newConversationData: [String: Any] = [
                 "id": conversationID,
-                "other_user_emai": otherUserEmail,
+                "other_user_email": otherUserEmail,
                 "name": name,
                 "latest_message": [
                     "date": dateString,
@@ -254,7 +254,7 @@ extension DatabaseManager {
                 return
             }
             
-            let conversatios: [Conversation] = value.compactMap { dictionary in
+            let conversations: [Conversation] = value.compactMap { dictionary in
                 guard let conversationId = dictionary["id"] as? String,
                       let name = dictionary["name"] as? String,
                       let otherUserEmail = dictionary["other_user_email"] as? String,
@@ -269,13 +269,36 @@ extension DatabaseManager {
                 return Conversation(id: conversationId, name: name, otherUserEmail: otherUserEmail, latestMessage: latestMessageObject)
                 
             }
-            completion(.success(conversatios))
+            completion(.success(conversations))
         }
     }
     
     /// Gets all messages for a given conversation
-    public func getAllMessagesForConversations(with id: String, completion: @escaping (Result<String, Error>) -> Void) {
-        
+    public func getAllMessagesForConversations(with id: String, completion: @escaping (Result<[Message], Error>) -> Void) {
+        database.child("\(id)/messages").observe(.value) { snapshot in
+            guard let value = snapshot.value as? [[String: Any]] else {
+                completion(.failure(DatabaseErrors.failedToFetch))
+                return
+            }
+            
+            let messages: [Message] = value.compactMap { dictionary in
+                guard let name = dictionary["name"] as? String,
+                      let isRead = dictionary["is_read"] as? Bool,
+                      let messageID = dictionary["id"] as? String,
+                      let content = dictionary["content"] as? String,
+                      let senderEmail = dictionary["sender_email"] as? String,
+                      let type = dictionary["type"] as? String,
+                      let dateString = dictionary["date"] as? String,
+                      let date = ChatViewController.dateFormatter.date(from: dateString)
+                else {
+                    return nil
+                }
+                let sender = Sender(photoURL: "", senderId: senderEmail, displayName: name)
+                return Message(sender: sender, messageId: messageID, sentDate: date, kind: .text(content))
+                
+            }
+            completion(.success(messages))
+        }
     }
     /// Sends a message with target conversation and message
     public func sendMessage(to conversation: String, message: Message, completion: @escaping (Bool) -> Void) {
