@@ -21,6 +21,18 @@ final class DatabaseManager {
     }
 }
 
+extension DatabaseManager {
+    public func getDataFor(path: String, completion: @escaping (Result<Any, Error>) -> Void) {
+        self.database.child(path).observeSingleEvent(of: .value) { snapshot in
+            guard let value = snapshot.value else {
+                completion(.failure(DatabaseErrors.failedToFetch))
+                return
+            }
+            completion(.success(value))
+        }
+    }
+}
+
 // MARK: - Account Management
 
 extension DatabaseManager {
@@ -105,7 +117,8 @@ extension DatabaseManager {
 extension DatabaseManager {
     /// Creates a new conversation with target user email and first image
     public func createnewConveration(with otherUserEmail: String, name: String, firstMessage: Message, completion: @escaping (Bool) -> Void) {
-        guard let currentEmail = UserDefaults.standard.value(forKey: "email") as? String else {
+        guard let currentEmail = UserDefaults.standard.value(forKey: "email") as? String,
+              let currentName = UserDefaults.standard.value(forKey: "name") as? String else {
             return
         }
         let safeEmail = DatabaseManager.safeEmail(emailAddress: currentEmail)
@@ -163,7 +176,7 @@ extension DatabaseManager {
             let recipent_newConversationData: [String: Any] = [
                 "id": conversationID,
                 "other_user_email": safeEmail,
-                "name": "Self",
+                "name": currentName,
                 "latest_message": [
                     "date": dateString,
                     "message": message,
