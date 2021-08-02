@@ -8,6 +8,7 @@
 import UIKit
 import MessageKit
 import InputBarAccessoryView
+import SDWebImage
 
 struct Message: MessageType {
     public var sender: SenderType
@@ -81,7 +82,7 @@ class ChatViewController: MessagesViewController {
         
     }
     
-
+    
     
     init(with email: String, id: String?) {
         self.conversationId = id
@@ -100,6 +101,7 @@ class ChatViewController: MessagesViewController {
         messagesCollectionView.messagesDataSource = self
         messagesCollectionView.messagesLayoutDelegate = self
         messagesCollectionView.messagesDisplayDelegate = self
+        messagesCollectionView.messageCellDelegate = self
         messageInputBar.delegate = self
         setupInputButton()
     }
@@ -285,5 +287,40 @@ extension ChatViewController: MessagesDataSource, MessagesLayoutDelegate, Messag
     func numberOfSections(in messagesCollectionView: MessagesCollectionView) -> Int {
         return messages.count
     }
+    
+    func configureMediaMessageImageView(_ imageView: UIImageView, for message: MessageType, at indexPath: IndexPath, in messagesCollectionView: MessagesCollectionView) {
+        guard let message = message as? Message else {
+            return
+        }
+        
+        switch message.kind {
+        case .photo(let media):
+            guard let imageURL = media.url else {
+                return
+            }
+            imageView.sd_setImage(with: imageURL, completed: nil)
+        default:
+            break
+        }
+    }
+}
 
+extension ChatViewController: MessageCellDelegate {
+    func didTapImage(in cell: MessageCollectionViewCell) {
+        guard let indexPath = messagesCollectionView.indexPath(for: cell) else {
+            return
+        }
+        let message = messages[indexPath.section]
+        
+        switch message.kind {
+        case .photo(let media):
+            guard let imageURL = media.url else {
+                return
+            }
+            let vc = PhotoViewerViewController(with: imageURL)
+            self.navigationController?.pushViewController(vc, animated: true)
+        default:
+            break
+        }
+    }
 }
