@@ -142,7 +142,10 @@ extension DatabaseManager {
                 message = messageText
             case .attributedText(_):
                 break
-            case .photo(_):
+            case .photo(let mediaItem):
+                if let targetURLString = mediaItem.url?.absoluteString {
+                    message = targetURLString
+                }
                 break
             case .video(_):
                 break
