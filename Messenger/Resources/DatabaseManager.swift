@@ -336,6 +336,12 @@ extension DatabaseManager {
                     }
                     let media = Media(url: imageURL, image: nil, placeholderImage: placeHolder, size: CGSize(width: 300, height: 300))
                     kind = .photo(media)
+                } else if type == "video" {
+                    guard let videoURL = URL(string: content), let placeHolder = UIImage(named: "videoplaceholder") else {
+                        return nil
+                    }
+                    let media = Media(url: videoURL, image: nil, placeholderImage: placeHolder, size: CGSize(width: 300, height: 300))
+                    kind = .video(media)
                 } else {
                     kind = .text(content)
                 }
@@ -351,6 +357,7 @@ extension DatabaseManager {
             completion(.success(messages))
         }
     }
+    
     /// Sends a message with target conversation and message
     public func sendMessage(to conversation: String, otherUserEmail: String, name: String, newMessage: Message, completion: @escaping (Bool) -> Void) {
         
